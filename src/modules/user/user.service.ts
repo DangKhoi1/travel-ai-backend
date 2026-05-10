@@ -14,7 +14,21 @@ export class UserService {
   ) { }
   async createUser(createUserDto: CreateUserDto) {
     const user = this.UserRepo.create(createUserDto);
-    return await this.UserRepo.save(user);
+    const checkEmail = await this.UserRepo.findOneBy({ email: user.email });
+    if (checkEmail) {
+      return {
+        EC: 1,
+        EM: "Email already exists",
+        data: null
+      }
+    } else {
+      await this.UserRepo.save(user);
+      return {
+        EC: 0,
+        EM: "User created successfully",
+        data: user
+      }
+    }
   }
 
   async findAllUsers() {
@@ -43,7 +57,7 @@ export class UserService {
     return {
       EC: 0,
       EM: "User found",
-      data: user
+      DT: user
     }
   }
 

@@ -14,4 +14,4 @@ export const ConfigTypeOrm = TypeOrmModule.forRootAsync({
         synchronize: true,
     }),
     inject: [ConfigService],
-})  
+})
