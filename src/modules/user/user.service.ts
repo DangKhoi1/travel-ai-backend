@@ -4,6 +4,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
+import * as bcrypt from 'bcrypt';
 
 
 @Injectable()
@@ -14,6 +15,7 @@ export class UserService {
   ) { }
   async createUser(createUserDto: CreateUserDto) {
     const user = this.UserRepo.create(createUserDto);
+    user.fullName = createUserDto.fullName;
     const checkEmail = await this.UserRepo.findOneBy({ email: user.email });
     if (checkEmail) {
       return {
@@ -57,27 +59,46 @@ export class UserService {
     return {
       EC: 0,
       EM: "User found",
-      DT: user
+      data: user
     }
   }
 
   async updateUser(userId: string, updateUserDto: UpdateUserDto) {
     const user = await this.UserRepo.findOneBy({ userId: userId });
     if (!user) {
-      return "User not found";
+      return {
+        EC: 1,
+        EM: "User not found",
+        data: null
+      }
     }
-    return await this.UserRepo.update(userId, {
-      name: updateUserDto.fullName,
-      email: updateUserDto.email,
-      password: updateUserDto.password,
-      phoneNumber: updateUserDto.phoneNumber,
-      avatarPath: updateUserDto.avatarPath,
-      avatarUrl: updateUserDto.avatarUrl,
-      isActive: updateUserDto.isActive,
-    });
+    if (updateUserDto.password) {
+      updateUserDto.password = await bcrypt.hash(updateUserDto.password, 10);
+    }
+    const updatedUser = await this.UserRepo.merge(user, updateUserDto);
+    const { password, ...newUser } = updatedUser;
+    await this.UserRepo.save(updatedUser);
+    return {
+      EC: 0,
+      EM: "User updated successfully",
+      data: newUser
+    }
   }
 
   async deleteUser(userId: string) {
-    return await this.UserRepo.delete(userId);
+    const user = await this.UserRepo.findOneBy({ userId: userId });
+    if (!user) {
+      return {
+        EC: 1,
+        EM: "User not found",
+        data: null
+      }
+    }
+    await this.UserRepo.delete(userId);
+    return {
+      EC: 0,
+      EM: "User deleted successfully",
+      data: null
+    }
   }
 }

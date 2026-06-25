@@ -1,14 +1,10 @@
-import { PartialType } from '@nestjs/mapped-types';
-import { IsBoolean, IsEmail, IsNotEmpty, IsNumber, IsString } from 'class-validator';
+import { IsBoolean, IsEmail, IsNotEmpty, IsNumber, IsString } from "class-validator";
 
-export class UpdateUserDto {
-    @IsString()
-    @IsNotEmpty()
-    userId: string
+export class CreateAuthDto {
 
     @IsString()
     @IsNotEmpty()
-    username: string
+    userName: string
 
     @IsString()
     @IsNotEmpty()
@@ -27,11 +23,10 @@ export class UpdateUserDto {
     phoneNumber: string
 
     @IsString()
-    @IsNotEmpty()
-    avatarPath: string
+    avatarPath?: string
 
     @IsString()
-    avatarUrl: string
+    avatarUrl?: string
 
     @IsBoolean()
     @IsNotEmpty()

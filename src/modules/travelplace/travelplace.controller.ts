@@ -19,16 +19,16 @@ export class TravelplaceController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.travelplaceService.findOne(+id);
+    return this.travelplaceService.findOne(id);
   }
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateTravelplaceDto: UpdateTravelplaceDto) {
-    return this.travelplaceService.update(+id, updateTravelplaceDto);
+    return this.travelplaceService.update(id, updateTravelplaceDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.travelplaceService.remove(+id);
+    return this.travelplaceService.remove(id);
   }
 }

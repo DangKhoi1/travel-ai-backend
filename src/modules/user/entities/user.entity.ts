@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 
 @Entity()
 export class User {
@@ -6,7 +6,10 @@ export class User {
   userId: string;
 
   @Column({ nullable: true })
-  name: string;
+  fullName: string;
+
+  @Column({ nullable: true })
+  username: string;
 
   @Column({ nullable: true })
   email: string;
@@ -23,6 +26,13 @@ export class User {
   @Column({ nullable: true })
   avatarUrl: string;
 
-  @Column({ nullable: true })
+  @Column({ default: true })
   isActive: boolean;
+
+  @CreateDateColumn()
+  createdAt: Date
+
+  @UpdateDateColumn()
+  updatedAt: Date
+
 }
