@@ -6,99 +6,116 @@ import { User } from './entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
 
-
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User)
-    private readonly UserRepo: Repository<User>
+    private readonly userRepo: Repository<User>,
   ) { }
+
   async createUser(createUserDto: CreateUserDto) {
-    const user = this.UserRepo.create(createUserDto);
-    user.fullName = createUserDto.fullName;
-    const checkEmail = await this.UserRepo.findOneBy({ email: user.email });
+    const checkEmail = await this.userRepo.findOneBy({ email: createUserDto.email });
     if (checkEmail) {
       return {
         EC: 1,
-        EM: "Email already exists",
-        data: null
-      }
-    } else {
-      await this.UserRepo.save(user);
-      return {
-        EC: 0,
-        EM: "User created successfully",
-        data: user
+        EM: 'Email already exists',
+        data: null,
+      };
+    }
+
+    if (createUserDto.username) {
+      const checkUsername = await this.userRepo.findOneBy({ username: createUserDto.username });
+      if (checkUsername) {
+        return {
+          EC: 1,
+          EM: 'Username already exists',
+          data: null,
+        };
       }
     }
+    const user = this.userRepo.create(createUserDto);
+    await this.userRepo.save(user);
+    const { password, ...newUser } = user;
+    return {
+      EC: 0,
+      EM: 'User created successfully',
+      data: newUser,
+    };
   }
 
   async findAllUsers() {
-    const userInfo = await this.UserRepo.find();
-    if (userInfo.length === 0) {
+    const users = await this.userRepo.find();
+    const result = users.map((user) => {
+      const { password, ...rest } = user;
+      return rest;
+    });
+    if (result.length === 0) {
       return {
-        message: "User not found",
-        data: null
+        EC: 1,
+        EM: 'No users found',
+        data: null,
       };
     }
     return {
-      message: "User found",
-      data: userInfo
+      EC: 0,
+      EM: 'Find all users successfully',
+      data: result,
     };
   }
 
   async findUserById(userId: string) {
-    const user = await this.UserRepo.findOneBy({ userId: userId });
+    const user = await this.userRepo.findOneBy({ userId });
     if (!user) {
       return {
         EC: 1,
-        EM: "User not found",
-        data: null
-      }
+        EM: 'User not found',
+        data: null,
+      };
     }
+    const { password, ...newUser } = user;
     return {
       EC: 0,
-      EM: "User found",
-      data: user
-    }
+      EM: 'Find user by ID successfully',
+      data: newUser,
+    };
   }
 
   async updateUser(userId: string, updateUserDto: UpdateUserDto) {
-    const user = await this.UserRepo.findOneBy({ userId: userId });
+    const user = await this.userRepo.findOneBy({ userId });
     if (!user) {
       return {
         EC: 1,
-        EM: "User not found",
-        data: null
-      }
+        EM: 'User not found',
+        data: null,
+      };
     }
     if (updateUserDto.password) {
       updateUserDto.password = await bcrypt.hash(updateUserDto.password, 10);
     }
-    const updatedUser = await this.UserRepo.merge(user, updateUserDto);
+    const updatedUser = this.userRepo.merge(user, updateUserDto);
+    await this.userRepo.save(updatedUser);
     const { password, ...newUser } = updatedUser;
-    await this.UserRepo.save(updatedUser);
     return {
       EC: 0,
-      EM: "User updated successfully",
-      data: newUser
-    }
+      EM: 'User updated successfully',
+      data: newUser,
+    };
   }
 
   async deleteUser(userId: string) {
-    const user = await this.UserRepo.findOneBy({ userId: userId });
+    const user = await this.userRepo.findOneBy({ userId });
     if (!user) {
       return {
         EC: 1,
-        EM: "User not found",
-        data: null
-      }
+        EM: 'User not found',
+        data: null,
+      };
     }
-    await this.UserRepo.delete(userId);
+    await this.userRepo.delete(userId);
     return {
       EC: 0,
-      EM: "User deleted successfully",
-      data: null
-    }
+      EM: 'User deleted successfully',
+      data: null,
+    };
   }
 }

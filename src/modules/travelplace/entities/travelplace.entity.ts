@@ -1,7 +1,10 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany, OneToOne } from 'typeorm';
+import { VectorData } from '../../rag/entities/vector-data.entity';
+import { Review } from '../../review/entities/review.entity';
+import { TripPlaceSelection } from '../../trip/entities/trip-place-selection.entity';
 
-@Entity('travelplaces')
-export class Travelplace {
+@Entity('travel_places')
+export class TravelPlace {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
@@ -12,24 +15,37 @@ export class Travelplace {
   description: string;
 
   @Column({ nullable: true })
-  location: string;        // VD: "Hội An, Quảng Nam"
+  city: string;
 
   @Column({ nullable: true })
-  region: string;          // "Miền Trung" | "Miền Bắc" | "Miền Nam"
+  country: string;
+
+  @Column({ type: 'float', nullable: true })
+  latitude: number;
+
+  @Column({ type: 'float', nullable: true })
+  longitude: number;
 
   @Column({ nullable: true })
-  bestTime: string;        // VD: "Tháng 2 - 4"
+  ticketPrice: string;
 
   @Column({ nullable: true })
-  category: string;        // "beach" | "mountain" | "city" | "heritage"
+  category: string;
 
   @Column({ nullable: true })
-  entryFee: string;        // VD: "Miễn phí" hoặc "80.000đ"
+  bestSeason: string;
 
-  // Lưu embedding dạng text vì TypeORM chưa hỗ trợ vector type
-  // Sẽ dùng raw SQL để insert/query với pgvector
-  @Column({ type: 'text', nullable: true, select: false })
-  embedding: string;
+  @Column({ nullable: true })
+  imageUrl: string;
+
+  @OneToOne(() => VectorData, (vectorData) => vectorData.place)
+  vectorData: VectorData;
+
+  @OneToMany(() => Review, (review) => review.place)
+  reviews: Review[];
+
+  @OneToMany(() => TripPlaceSelection, (selection) => selection.place)
+  tripPlaceSelections: TripPlaceSelection[];
 
   @CreateDateColumn()
   createdAt: Date;

@@ -1,16 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Travelplace } from './entities/travelplace.entity';
+import { TravelPlace } from './entities/travelplace.entity';
 import { CreateTravelplaceDto } from './dto/create-travelplace.dto';
 import { UpdateTravelplaceDto } from './dto/update-travelplace.dto';
 
 @Injectable()
 export class TravelplaceService {
   constructor(
-    @InjectRepository(Travelplace)
-    private readonly travelplaceRepo: Repository<Travelplace>,
-  ) {}
+    @InjectRepository(TravelPlace)
+    private readonly travelplaceRepo: Repository<TravelPlace>,
+  ) { }
 
   async create(createTravelplaceDto: CreateTravelplaceDto) {
     const place = this.travelplaceRepo.create(createTravelplaceDto);

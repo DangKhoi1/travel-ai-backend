@@ -5,29 +5,29 @@ import { UpdateTravelplaceDto } from './dto/update-travelplace.dto';
 
 @Controller('travelplace')
 export class TravelplaceController {
-  constructor(private readonly travelplaceService: TravelplaceService) {}
+  constructor(private readonly travelplaceService: TravelplaceService) { }
 
-  @Post()
+  @Post('add-travelplace')
   create(@Body() createTravelplaceDto: CreateTravelplaceDto) {
     return this.travelplaceService.create(createTravelplaceDto);
   }
 
-  @Get()
-  findAll() {
+  @Get('find-all')
+  findAllTravelplace() {
     return this.travelplaceService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
+  @Get('find-by-id/:id')
+  findOneTravelplace(@Param('id') id: string) {
     return this.travelplaceService.findOne(id);
   }
 
-  @Patch(':id')
+  @Patch('update-travelplace/:id')
   update(@Param('id') id: string, @Body() updateTravelplaceDto: UpdateTravelplaceDto) {
     return this.travelplaceService.update(id, updateTravelplaceDto);
   }
 
-  @Delete(':id')
+  @Delete('delete-travelplace/:id')
   remove(@Param('id') id: string) {
     return this.travelplaceService.remove(id);
   }

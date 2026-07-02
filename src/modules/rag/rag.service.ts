@@ -4,16 +4,17 @@ import { DataSource, Repository } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
 import OpenAI from 'openai';
 import { EmbeddingService } from './embedding.service';
-import { Travelplace } from '../travelplace/entities/travelplace.entity';
+import { TravelPlace } from '../travelplace/entities/travelplace.entity';
+import { VectorData } from './entities/vector-data.entity';
 import { CreateTravelplaceDto } from '../travelplace/dto/create-travelplace.dto';
 
 export interface RetrievedDoc {
   id: string;
   name: string;
   description: string;
-  location: string;
-  region: string;
-  bestTime: string;
+  city: string;
+  country: string;
+  bestSeason: string;
   category: string;
   similarity: number;
 }
@@ -35,8 +36,10 @@ export class RagService {
 
   constructor(
     @InjectDataSource() private dataSource: DataSource,
-    @InjectRepository(Travelplace)
-    private travelplaceRepo: Repository<Travelplace>,
+    @InjectRepository(TravelPlace)
+    private travelplaceRepo: Repository<TravelPlace>,
+    @InjectRepository(VectorData)
+    private vectorDataRepo: Repository<VectorData>,
     private embeddingService: EmbeddingService,
     private configService: ConfigService,
   ) {
@@ -47,32 +50,27 @@ export class RagService {
 
   async indexPlace(dto: CreateTravelplaceDto): Promise<{ EC: number; EM: string; data: any }> {
     try {
+      // 1. Tạo địa điểm trong bảng travel_places
+      const place = this.travelplaceRepo.create(dto);
+      await this.travelplaceRepo.save(place);
+
+      // 2. Tạo embedding và lưu vào bảng vector_data
       const textToEmbed = this.embeddingService.buildIndexText(dto);
       this.logger.log(`Indexing: "${dto.name}" | Text: ${textToEmbed.substring(0, 80)}...`);
 
       const embedding = await this.embeddingService.embed(textToEmbed);
       const vectorStr = this.embeddingService.toVectorString(embedding);
 
-      const result = await this.dataSource.query(
-        `INSERT INTO travelplaces (id, name, description, location, region, "bestTime", category, "entryFee", embedding, "createdAt", "updatedAt")
-         VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8::vector, NOW(), NOW())
-         RETURNING id, name, location`,
-        [
-          dto.name,
-          dto.description,
-          dto.location ?? null,
-          dto.region ?? null,
-          dto.bestTime ?? null,
-          dto.category ?? null,
-          dto.entryFee ?? null,
-          vectorStr,
-        ],
+      await this.dataSource.query(
+        `INSERT INTO vector_data (id, "placeId", embedding, "modelName", "createdAt")
+         VALUES (gen_random_uuid(), $1, $2::vector, $3, NOW())`,
+        [place.id, vectorStr, EmbeddingService.MODEL],
       );
 
       return {
         EC: 0,
         EM: `Đã thêm "${dto.name}" vào knowledge base`,
-        data: result[0],
+        data: { id: place.id, name: place.name, city: place.city },
       };
     } catch (error) {
       this.logger.error(`Index failed: ${error.message}`);
@@ -86,11 +84,13 @@ export class RagService {
 
     const results = await this.dataSource.query(
       `SELECT
-        id, name, description, location, region, "bestTime", category,
-        1 - (embedding <=> $1::vector) AS similarity
-       FROM travelplaces
-       WHERE embedding IS NOT NULL
-       ORDER BY embedding <=> $1::vector
+        tp.id, tp.name, tp.description, tp.city, tp.country,
+        tp."bestSeason", tp.category,
+        1 - (vd.embedding <=> $1::vector) AS similarity
+       FROM vector_data vd
+       JOIN travel_places tp ON tp.id = vd."placeId"
+       WHERE vd.embedding IS NOT NULL
+       ORDER BY vd.embedding <=> $1::vector
        LIMIT $2`,
       [vectorStr, topK],
     );
@@ -135,9 +135,9 @@ export class RagService {
             .map(
               (d, i) =>
                 `[Nguồn ${i + 1}] ${d.name}
-  - Địa điểm: ${d.location ?? 'Không rõ'}
-  - Khu vực: ${d.region ?? 'Không rõ'}
-  - Thời điểm tốt nhất: ${d.bestTime ?? 'Quanh năm'}
+  - Thành phố: ${d.city ?? 'Không rõ'}
+  - Quốc gia: ${d.country ?? 'Việt Nam'}
+  - Mùa tốt nhất: ${d.bestSeason ?? 'Quanh năm'}
   - Loại hình: ${d.category ?? 'Tổng hợp'}
   - Mô tả: ${d.description}`,
             )
@@ -180,10 +180,20 @@ NGUYÊN TẮC TRẢ LỜI:
     const embedding = await this.embeddingService.embed(textToEmbed);
     const vectorStr = this.embeddingService.toVectorString(embedding);
 
-    await this.dataSource.query(
-      `UPDATE travelplaces SET embedding = $1::vector, "updatedAt" = NOW() WHERE id = $2`,
-      [vectorStr, id],
-    );
+    // Upsert: update nếu đã có, insert nếu chưa
+    const existing = await this.vectorDataRepo.findOneBy({ placeId: id });
+    if (existing) {
+      await this.dataSource.query(
+        `UPDATE vector_data SET embedding = $1::vector, "modelName" = $2, "createdAt" = NOW() WHERE "placeId" = $3`,
+        [vectorStr, EmbeddingService.MODEL, id],
+      );
+    } else {
+      await this.dataSource.query(
+        `INSERT INTO vector_data (id, "placeId", embedding, "modelName", "createdAt")
+         VALUES (gen_random_uuid(), $1, $2::vector, $3, NOW())`,
+        [id, vectorStr, EmbeddingService.MODEL],
+      );
+    }
 
     return { EC: 0, EM: `Đã reindex "${place.name}"` };
   }

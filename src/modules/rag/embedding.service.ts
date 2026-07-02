@@ -8,7 +8,7 @@ export class EmbeddingService {
   private openai: OpenAI;
 
   // Dimension phải khớp với vector(N) trong DB
-  static readonly DIMENSION = 1536;  // text-embedding-3-small
+  static readonly DIMENSION = 1536; // text-embedding-3-small
   static readonly MODEL = 'text-embedding-3-small';
 
   constructor(private configService: ConfigService) {
@@ -17,16 +17,11 @@ export class EmbeddingService {
     });
   }
 
-  /**
-   * Tạo embedding vector từ text
-   * @param text - văn bản cần embed
-   * @returns number[] - vector 1536 chiều
-   */
   async embed(text: string): Promise<number[]> {
     try {
       const response = await this.openai.embeddings.create({
         model: EmbeddingService.MODEL,
-        input: text.replace(/\n/g, ' '),  // clean newlines
+        input: text.replace(/\n/g, ' '), // clean newlines
       });
       return response.data[0].embedding;
     } catch (error) {
@@ -35,31 +30,24 @@ export class EmbeddingService {
     }
   }
 
-  /**
-   * Chuyển array number[] → chuỗi pgvector format "[0.1, 0.2, ...]"
-   */
   toVectorString(embedding: number[]): string {
     return `[${embedding.join(',')}]`;
   }
 
-  /**
-   * Tạo text chuẩn để embed cho 1 địa điểm
-   * Nên bao gồm tất cả field quan trọng để embedding chính xác
-   */
   buildIndexText(place: {
     name: string;
     description: string;
-    location?: string;
-    region?: string;
-    bestTime?: string;
+    city?: string;
+    country?: string;
+    bestSeason?: string;
     category?: string;
   }): string {
     return [
       `Tên: ${place.name}`,
       `Mô tả: ${place.description}`,
-      place.location && `Địa điểm: ${place.location}`,
-      place.region && `Khu vực: ${place.region}`,
-      place.bestTime && `Thời điểm tốt nhất để đến: ${place.bestTime}`,
+      place.city && `Thành phố: ${place.city}`,
+      place.country && `Quốc gia: ${place.country}`,
+      place.bestSeason && `Mùa tốt nhất để đến: ${place.bestSeason}`,
       place.category && `Loại hình: ${place.category}`,
     ]
       .filter(Boolean)

@@ -6,6 +6,10 @@ import { TravelplaceModule } from './modules/travelplace/travelplace.module';
 import { ConfigTypeOrm } from './config/typeorm.config';
 import { AuthModule } from './modules/auth/auth.module';
 import { RagModule } from './modules/rag/rag.module';
+import { ReviewModule } from './modules/review/review.module';
+import { ChatModule } from './modules/chat/chat.module';
+import { RecommendationModule } from './modules/recommendation/recommendation.module';
+import { TripModule } from './modules/trip/trip.module';
 
 @Module({
   imports: [
@@ -14,8 +18,12 @@ import { RagModule } from './modules/rag/rag.module';
     TravelplaceModule,
     AuthModule,
     RagModule,
+    ReviewModule,
+    ChatModule,
+    RecommendationModule,
+    TripModule,
   ],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule { }
+export class AppModule {}

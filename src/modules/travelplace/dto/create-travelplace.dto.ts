@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, IsOptional } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, IsNumber } from 'class-validator';
 
 export class CreateTravelplaceDto {
   @IsString()
@@ -11,15 +11,23 @@ export class CreateTravelplaceDto {
 
   @IsString()
   @IsOptional()
-  location?: string;
+  city?: string;
 
   @IsString()
   @IsOptional()
-  region?: string;
+  country?: string;
+
+  @IsNumber()
+  @IsOptional()
+  latitude?: number;
+
+  @IsNumber()
+  @IsOptional()
+  longitude?: number;
 
   @IsString()
   @IsOptional()
-  bestTime?: string;
+  ticketPrice?: string;
 
   @IsString()
   @IsOptional()
@@ -27,5 +35,9 @@ export class CreateTravelplaceDto {
 
   @IsString()
   @IsOptional()
-  entryFee?: string;
+  bestSeason?: string;
+
+  @IsString()
+  @IsOptional()
+  imageUrl?: string;
 }
