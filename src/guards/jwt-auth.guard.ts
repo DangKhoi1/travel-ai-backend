@@ -1,7 +1,8 @@
-import { Injectable, ExecutionContext } from '@nestjs/common';
+import { Injectable, ExecutionContext, UnauthorizedException } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { Reflector } from '@nestjs/core';
 import { IS_PUBLIC_KEY } from '../common/decorators/public.decorator';
+import { User } from 'src/modules/user/entities/user.entity';
 
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('jwt') {
@@ -17,5 +18,17 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
         }
 
         return super.canActivate(context);
+    }
+
+    handleRequest<TUser = User>(error: unknown, user: TUser): TUser {
+        if (error || !user) {
+            if (error instanceof Error) {
+                throw error;
+            }
+            const fallbackMessage = "You don't have permission to access this resource";
+            const safeMessage = typeof error === 'string' && error.trim().length > 0 ? error : fallbackMessage;
+            throw new UnauthorizedException(safeMessage);
+        }
+        return user;
     }
 }

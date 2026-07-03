@@ -5,8 +5,8 @@ import { RecommendationRequest } from '../../recommendation/entities/recommendat
 import { TripPlan } from '../../trip/entities/trip-plan.entity';
 
 export enum UserRole {
-  USER = 'user',
-  ADMIN = 'admin',
+  USER = 'USER',
+  ADMIN = 'ADMIN',
 }
 
 @Entity('users')

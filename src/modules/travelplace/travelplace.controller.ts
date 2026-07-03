@@ -23,12 +23,12 @@ export class TravelplaceController {
   }
 
   @Patch('update-travelplace/:id')
-  update(@Param('id') id: string, @Body() updateTravelplaceDto: UpdateTravelplaceDto) {
+  updateTravelplace(@Param('id') id: string, @Body() updateTravelplaceDto: UpdateTravelplaceDto) {
     return this.travelplaceService.update(id, updateTravelplaceDto);
   }
 
   @Delete('delete-travelplace/:id')
-  remove(@Param('id') id: string) {
+  removeTravelplace(@Param('id') id: string) {
     return this.travelplaceService.remove(id);
   }
 }
