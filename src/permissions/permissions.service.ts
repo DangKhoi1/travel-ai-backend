@@ -23,13 +23,12 @@ export class PermissionsService implements OnModuleInit {
     private readonly rolePermissionRepo: Repository<RolePermission>,
     @InjectRepository(Role)
     private readonly roleRepo: Repository<Role>,
-  ) {}
+  ) { }
 
   async onModuleInit() {
     this.logger.log('Scanning for @Permission decorators...');
     const controllers = this.discoveryService.getControllers();
-    
-    // Fetch the ADMIN role for auto-assignment
+
     const adminRole = await this.roleRepo.findOneBy({ roleName: ROLE_NAMES.ADMIN });
 
     for (const wrapper of controllers) {
@@ -44,36 +43,35 @@ export class PermissionsService implements OnModuleInit {
       for (const methodName of methods) {
         if (methodName === 'constructor') continue;
         const method = prototype[methodName];
-        
+
         const permissionName = this.reflector.get<string>(PERMISSION_KEY, method);
 
         if (permissionName) {
           const methodPath = this.reflector.get<string>('path', method) || '';
           const httpMethodId = this.reflector.get<number>('method', method);
-          
+
           let apiPath = `/${controllerPath}`;
           if (methodPath) {
-             apiPath = `${apiPath}/${methodPath}`.replace(/\/+/g, '/');
+            apiPath = `${apiPath}/${methodPath}`.replace(/\/+/g, '/');
           }
-          
+
           let methodStr = 'UNKNOWN';
           if (httpMethodId !== undefined) {
-             methodStr = RequestMethod[httpMethodId];
+            methodStr = RequestMethod[httpMethodId];
           }
 
           let permission = await this.permissionRepo.findOneBy({ permissionName });
           if (!permission) {
-            permission = this.permissionRepo.create({ 
-               permissionName,
-               apiPath,
-               method: methodStr,
-               module: controllerName.replace('Controller', '')
+            permission = this.permissionRepo.create({
+              permissionName,
+              apiPath,
+              method: methodStr,
+              module: controllerName.replace('Controller', '')
             });
             await this.permissionRepo.save(permission);
             this.logger.log(`Discovered & saved new permission: [${methodStr}] ${apiPath} -> ${permissionName}`);
           }
 
-          // Auto-assign to Admin if not assigned
           if (adminRole) {
             const rolePermExists = await this.rolePermissionRepo.findOneBy({
               roleId: adminRole.roleId,
@@ -93,24 +91,49 @@ export class PermissionsService implements OnModuleInit {
     }
   }
 
-  // --- Scaffolded CRUD methods ---
-  create(createPermissionDto: CreatePermissionDto) {
-    return 'This action adds a new permission';
+  async create(createPermissionDto: CreatePermissionDto) {
+    const permission = await this.permissionRepo.create(createPermissionDto);
+    await this.permissionRepo.save(permission);
+    return {
+      EC: 0,
+      EM: 'Create permission successfully',
+      data: permission
+    }
   }
 
-  findAll() {
-    return `This action returns all permissions`;
+  async findAll() {
+    const permissions = await this.permissionRepo.find();
+    return {
+      EC: 0,
+      EM: 'Get all permissions successfully',
+      data: permissions
+    }
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} permission`;
+  async findOne(id: number) {
+    const permission = await this.permissionRepo.findOneBy({ permissionId: id });
+    return {
+      EC: 0,
+      EM: 'Get permission successfully',
+      data: permission
+    }
   }
 
-  update(id: number, updatePermissionDto: UpdatePermissionDto) {
-    return `This action updates a #${id} permission`;
+  async update(id: number, updatePermissionDto: UpdatePermissionDto) {
+    await this.permissionRepo.update(id, updatePermissionDto);
+    return {
+      EC: 0,
+      EM: 'Update permission successfully',
+      data: null
+    }
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} permission`;
+  async remove(id: number) {
+    await this.permissionRepo.delete(id);
+    return {
+      EC: 0,
+      EM: 'Delete permission successfully',
+      data: null
+    }
   }
 }
