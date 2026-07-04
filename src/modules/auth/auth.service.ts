@@ -6,12 +6,16 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { LoginAuthDto } from './dto/login.dto';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
+import { Role } from '../roles/entities/role.entity';
+import { ROLE_NAMES } from '../../common/constants/role.constant';
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectRepository(User)
     private readonly userRepo: Repository<User>,
+    @InjectRepository(Role)
+    private readonly roleRepo: Repository<Role>,
     private readonly jwtService: JwtService,
   ) { }
 
@@ -37,7 +41,11 @@ export class AuthService {
         }
       }
 
-      const user = this.userRepo.create(createUserDto);
+      const userRole = await this.roleRepo.findOneBy({ roleName: ROLE_NAMES.USER });
+      const user = this.userRepo.create({
+        ...createUserDto,
+        role: userRole || undefined,
+      });
       user.password = await bcrypt.hash(user.password, 10);
       await this.userRepo.save(user);
 
@@ -57,7 +65,10 @@ export class AuthService {
 
   async loginUser(loginAuthDto: LoginAuthDto) {
     try {
-      const user = await this.userRepo.findOneBy({ username: loginAuthDto.username });
+      const user = await this.userRepo.findOne({
+        where: { username: loginAuthDto.username },
+        relations: ['role'],
+      });
       if (!user) {
         return {
           EC: 1,
@@ -76,7 +87,7 @@ export class AuthService {
       }
 
       // Tạo JWT token
-      const payload = { sub: user.userId, email: user.email, role: user.role };
+      const payload = { sub: user.userId, email: user.email, role: user.role?.roleName };
       const accessToken = this.jwtService.sign(payload);
 
       const { password, ...newUser } = user;

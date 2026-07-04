@@ -10,8 +10,8 @@ import { ReviewModule } from './modules/review/review.module';
 import { ChatModule } from './modules/chat/chat.module';
 import { RecommendationModule } from './modules/recommendation/recommendation.module';
 import { TripModule } from './modules/trip/trip.module';
-import { PermissionModule } from './permission/permission.module';
 import { PermissionsModule } from './permissions/permissions.module';
+import { RolesModule } from './modules/roles/roles.module';
 
 @Module({
   imports: [
@@ -24,8 +24,8 @@ import { PermissionsModule } from './permissions/permissions.module';
     ChatModule,
     RecommendationModule,
     TripModule,
-    PermissionModule,
     PermissionsModule,
+    RolesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

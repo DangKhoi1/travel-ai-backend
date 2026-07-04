@@ -1,13 +1,9 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany, ManyToOne, JoinColumn } from 'typeorm';
 import { Review } from '../../review/entities/review.entity';
 import { ChatHistory } from '../../chat/entities/chat-history.entity';
 import { RecommendationRequest } from '../../recommendation/entities/recommendation-request.entity';
 import { TripPlan } from '../../trip/entities/trip-plan.entity';
-
-export enum UserRole {
-  USER = 'USER',
-  ADMIN = 'ADMIN',
-}
+import { Role } from '../../roles/entities/role.entity';
 
 @Entity('users')
 export class User {
@@ -32,8 +28,9 @@ export class User {
   @Column({ nullable: true })
   avatar: string;
 
-  @Column({ type: 'enum', enum: UserRole, default: UserRole.USER })
-  role: UserRole;
+  @ManyToOne(() => Role)
+  @JoinColumn({ name: 'roleId' })
+  role: Role;
 
   @Column({ default: true })
   isActive: boolean;
