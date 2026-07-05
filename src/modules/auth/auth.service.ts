@@ -55,10 +55,14 @@ export class AuthService {
         EM: 'User created successfully',
         data: newUser,
       };
-    } catch (error) {
+    } catch (error: unknown) {
+      console.error(
+        'Error in createUser:',
+        error instanceof Error ? error.message : String(error),
+      );
       throw new InternalServerErrorException({
         EC: 1,
-        EM: 'Error creating user',
+        EM: 'Error from createUser service',
       });
     }
   }
@@ -99,10 +103,14 @@ export class AuthService {
           accessToken,
         },
       };
-    } catch (error) {
+    } catch (error: unknown) {
+      console.error(
+        'Error in loginUser:',
+        error instanceof Error ? error.message : String(error),
+      );
       throw new InternalServerErrorException({
         EC: 1,
-        EM: 'Error logging in user',
+        EM: 'Error from loginUser service',
       });
     }
   }

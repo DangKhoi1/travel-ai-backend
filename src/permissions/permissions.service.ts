@@ -1,4 +1,4 @@
-import { Injectable, OnModuleInit, Logger, RequestMethod } from '@nestjs/common';
+import { Injectable, OnModuleInit, Logger, RequestMethod, InternalServerErrorException } from '@nestjs/common';
 import { CreatePermissionDto } from './dto/create-permission.dto';
 import { UpdatePermissionDto } from './dto/update-permission.dto';
 import { DiscoveryService, Reflector } from '@nestjs/core';
@@ -92,48 +92,126 @@ export class PermissionsService implements OnModuleInit {
   }
 
   async create(createPermissionDto: CreatePermissionDto) {
-    const permission = await this.permissionRepo.create(createPermissionDto);
-    await this.permissionRepo.save(permission);
-    return {
-      EC: 0,
-      EM: 'Create permission successfully',
-      data: permission
+    try {
+      const permission = this.permissionRepo.create(createPermissionDto);
+      await this.permissionRepo.save(permission);
+      return {
+        EC: 0,
+        EM: 'Create permission successfully',
+        data: permission
+      };
+    } catch (error: unknown) {
+      console.error(
+        'Error in create permission:',
+        error instanceof Error ? error.message : String(error),
+      );
+      throw new InternalServerErrorException({
+        EC: 1,
+        EM: 'Error from create permission service',
+      });
     }
   }
 
   async findAll() {
-    const permissions = await this.permissionRepo.find();
-    return {
-      EC: 0,
-      EM: 'Get all permissions successfully',
-      data: permissions
+    try {
+      const permissions = await this.permissionRepo.find();
+      return {
+        EC: 0,
+        EM: 'Get all permissions successfully',
+        data: permissions
+      };
+    } catch (error: unknown) {
+      console.error(
+        'Error in findAll permissions:',
+        error instanceof Error ? error.message : String(error),
+      );
+      throw new InternalServerErrorException({
+        EC: 1,
+        EM: 'Error from findAll permissions service',
+      });
     }
   }
 
   async findOne(id: number) {
-    const permission = await this.permissionRepo.findOneBy({ permissionId: id });
-    return {
-      EC: 0,
-      EM: 'Get permission successfully',
-      data: permission
+    try {
+      const permission = await this.permissionRepo.findOneBy({ permissionId: id });
+      if (!permission) {
+        return {
+          EC: 1,
+          EM: 'Permission not found',
+          data: null
+        };
+      }
+      return {
+        EC: 0,
+        EM: 'Get permission successfully',
+        data: permission
+      };
+    } catch (error: unknown) {
+      console.error(
+        'Error in findOne permission:',
+        error instanceof Error ? error.message : String(error),
+      );
+      throw new InternalServerErrorException({
+        EC: 1,
+        EM: 'Error from findOne permission service',
+      });
     }
   }
 
   async update(id: number, updatePermissionDto: UpdatePermissionDto) {
-    await this.permissionRepo.update(id, updatePermissionDto);
-    return {
-      EC: 0,
-      EM: 'Update permission successfully',
-      data: null
+    try {
+      const permission = await this.permissionRepo.findOneBy({ permissionId: id });
+      if (!permission) {
+        return {
+          EC: 1,
+          EM: 'Permission not found',
+          data: null
+        };
+      }
+      await this.permissionRepo.update(id, updatePermissionDto);
+      return {
+        EC: 0,
+        EM: 'Update permission successfully',
+        data: null
+      };
+    } catch (error: unknown) {
+      console.error(
+        'Error in update permission:',
+        error instanceof Error ? error.message : String(error),
+      );
+      throw new InternalServerErrorException({
+        EC: 1,
+        EM: 'Error from update permission service',
+      });
     }
   }
 
   async remove(id: number) {
-    await this.permissionRepo.delete(id);
-    return {
-      EC: 0,
-      EM: 'Delete permission successfully',
-      data: null
+    try {
+      const permission = await this.permissionRepo.findOneBy({ permissionId: id });
+      if (!permission) {
+        return {
+          EC: 1,
+          EM: 'Permission not found',
+          data: null
+        };
+      }
+      await this.permissionRepo.delete(id);
+      return {
+        EC: 0,
+        EM: 'Delete permission successfully',
+        data: null
+      };
+    } catch (error: unknown) {
+      console.error(
+        'Error in remove permission:',
+        error instanceof Error ? error.message : String(error),
+      );
+      throw new InternalServerErrorException({
+        EC: 1,
+        EM: 'Error from remove permission service',
+      });
     }
   }
 }
