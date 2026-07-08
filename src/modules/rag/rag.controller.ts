@@ -5,8 +5,7 @@ import { CreateTravelplaceDto } from '../travelplace/dto/create-travelplace.dto'
 
 @Controller('rag')
 export class RagController {
-  constructor(private readonly ragService: RagService) { }
-
+  constructor(private readonly ragService: RagService) {}
 
   @Post('chat')
   async chat(@Body() dto: ChatDto) {
@@ -18,12 +17,8 @@ export class RagController {
     return this.ragService.indexPlace(dto);
   }
 
-
   @Get('retrieve')
-  async retrieve(
-    @Query('q') query: string,
-    @Query('topK') topK = '3',
-  ) {
+  async retrieve(@Query('q') query: string, @Query('topK') topK = '3') {
     const docs = await this.ragService.retrieve(query, parseInt(topK));
     return { EC: 0, EM: 'Retrieved', data: docs };
   }

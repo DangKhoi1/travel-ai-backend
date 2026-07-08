@@ -24,8 +24,9 @@ export class EmbeddingService {
         input: text.replace(/\n/g, ' '), // clean newlines
       });
       return response.data[0].embedding;
-    } catch (error) {
-      this.logger.error(`Embedding failed: ${error.message}`);
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : String(error);
+      this.logger.error(`Embedding failed: ${msg}`);
       throw error;
     }
   }

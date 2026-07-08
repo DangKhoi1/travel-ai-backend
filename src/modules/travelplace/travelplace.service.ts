@@ -1,4 +1,9 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  OnModuleInit,
+  Logger,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { TravelPlace } from './entities/travelplace.entity';
@@ -11,6 +16,7 @@ export class TravelplaceService {
     @InjectRepository(TravelPlace)
     private readonly travelplaceRepo: Repository<TravelPlace>,
   ) { }
+
 
   async create(createTravelplaceDto: CreateTravelplaceDto) {
     try {
@@ -90,7 +96,10 @@ export class TravelplaceService {
           data: null,
         };
       }
-      const updatedPlace = this.travelplaceRepo.merge(place, updateTravelplaceDto);
+      const updatedPlace = this.travelplaceRepo.merge(
+        place,
+        updateTravelplaceDto,
+      );
       await this.travelplaceRepo.save(updatedPlace);
       return {
         EC: 0,

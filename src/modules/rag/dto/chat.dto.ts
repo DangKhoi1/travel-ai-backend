@@ -1,4 +1,11 @@
-import { IsString, IsNotEmpty, IsOptional, IsNumber, Min, Max } from 'class-validator';
+import {
+  IsString,
+  IsNotEmpty,
+  IsOptional,
+  IsNumber,
+  Min,
+  Max,
+} from 'class-validator';
 
 export class ChatDto {
   @IsString()
@@ -9,5 +16,5 @@ export class ChatDto {
   @IsOptional()
   @Min(1)
   @Max(10)
-  topK?: number = 3;       // Số documents retrieve, default 3
+  topK?: number = 3; // Số documents retrieve, default 3
 }

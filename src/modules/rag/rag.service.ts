@@ -48,7 +48,9 @@ export class RagService {
     });
   }
 
-  async indexPlace(dto: CreateTravelplaceDto): Promise<{ EC: number; EM: string; data: any }> {
+  async indexPlace(
+    dto: CreateTravelplaceDto,
+  ): Promise<{ EC: number; EM: string; data: Partial<TravelPlace> | null }> {
     try {
       // 1. Tạo địa điểm trong bảng travel_places
       const place = this.travelplaceRepo.create(dto);
@@ -56,7 +58,9 @@ export class RagService {
 
       // 2. Tạo embedding và lưu vào bảng vector_data
       const textToEmbed = this.embeddingService.buildIndexText(dto);
-      this.logger.log(`Indexing: "${dto.name}" | Text: ${textToEmbed.substring(0, 80)}...`);
+      this.logger.log(
+        `Indexing: "${dto.name}" | Text: ${textToEmbed.substring(0, 80)}...`,
+      );
 
       const embedding = await this.embeddingService.embed(textToEmbed);
       const vectorStr = this.embeddingService.toVectorString(embedding);
@@ -72,9 +76,10 @@ export class RagService {
         EM: `Đã thêm "${dto.name}" vào knowledge base`,
         data: { id: place.id, name: place.name, city: place.city },
       };
-    } catch (error) {
-      this.logger.error(`Index failed: ${error.message}`);
-      return { EC: 1, EM: error.message, data: null };
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : String(error);
+      this.logger.error(`Index failed: ${msg}`);
+      return { EC: 1, EM: msg, data: null };
     }
   }
 
@@ -82,7 +87,7 @@ export class RagService {
     const queryEmbedding = await this.embeddingService.embed(query);
     const vectorStr = this.embeddingService.toVectorString(queryEmbedding);
 
-    const results = await this.dataSource.query(
+    const results: RetrievedDoc[] = await this.dataSource.query(
       `SELECT
         tp.id, tp.name, tp.description, tp.city, tp.country,
         tp."bestSeason", tp.category,
@@ -122,9 +127,10 @@ export class RagService {
           query: message,
         },
       };
-    } catch (error) {
-      this.logger.error(`Chat failed: ${error.message}`);
-      return { EC: 1, EM: error.message, data: null };
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : String(error);
+      this.logger.error(`Chat failed: ${msg}`);
+      return { EC: 1, EM: msg, data: null };
     }
   }
 
@@ -169,7 +175,10 @@ NGUYÊN TẮC TRẢ LỜI:
       max_tokens: 800,
     });
 
-    return response.choices[0].message.content ?? 'Xin lỗi, tôi không thể trả lời lúc này.';
+    return (
+      response.choices[0].message.content ??
+      'Xin lỗi, tôi không thể trả lời lúc này.'
+    );
   }
 
   async reindexPlace(id: string): Promise<{ EC: number; EM: string }> {

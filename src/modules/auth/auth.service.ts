@@ -17,11 +17,13 @@ export class AuthService {
     @InjectRepository(Role)
     private readonly roleRepo: Repository<Role>,
     private readonly jwtService: JwtService,
-  ) { }
+  ) {}
 
   async createUser(createUserDto: CreateAuthDto) {
     try {
-      const checkEmail = await this.userRepo.findOneBy({ email: createUserDto.email });
+      const checkEmail = await this.userRepo.findOneBy({
+        email: createUserDto.email,
+      });
       if (checkEmail) {
         return {
           EC: 1,
@@ -31,7 +33,9 @@ export class AuthService {
       }
 
       if (createUserDto.username) {
-        const checkUsername = await this.userRepo.findOneBy({ username: createUserDto.username });
+        const checkUsername = await this.userRepo.findOneBy({
+          username: createUserDto.username,
+        });
         if (checkUsername) {
           return {
             EC: 1,
@@ -41,7 +45,9 @@ export class AuthService {
         }
       }
 
-      const userRole = await this.roleRepo.findOneBy({ roleName: ROLE_NAMES.USER });
+      const userRole = await this.roleRepo.findOneBy({
+        roleName: ROLE_NAMES.USER,
+      });
       const user = this.userRepo.create({
         ...createUserDto,
         role: userRole || undefined,
@@ -49,7 +55,8 @@ export class AuthService {
       user.password = await bcrypt.hash(user.password, 10);
       await this.userRepo.save(user);
 
-      const { password, ...newUser } = user;
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { password: _, ...newUser } = user;
       return {
         EC: 0,
         EM: 'User created successfully',
@@ -81,7 +88,10 @@ export class AuthService {
         };
       }
 
-      const isMatch = await bcrypt.compare(loginAuthDto.password, user.password);
+      const isMatch = await bcrypt.compare(
+        loginAuthDto.password,
+        user.password,
+      );
       if (!isMatch) {
         return {
           EC: 1,
@@ -91,10 +101,15 @@ export class AuthService {
       }
 
       // Tạo JWT token
-      const payload = { sub: user.userId, email: user.email, role: user.role?.roleName };
+      const payload = {
+        sub: user.userId,
+        email: user.email,
+        role: user.role?.roleName,
+      };
       const accessToken = this.jwtService.sign(payload);
 
-      const { password, ...newUser } = user;
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { password: _, ...newUser } = user;
       return {
         EC: 0,
         EM: 'User logged in successfully',

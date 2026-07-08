@@ -1,4 +1,11 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, OneToOne, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  OneToOne,
+  JoinColumn,
+} from 'typeorm';
 import { TravelPlace } from '../../travelplace/entities/travelplace.entity';
 
 @Entity('vector_data')
@@ -9,7 +16,9 @@ export class VectorData {
   @Column({ unique: true })
   placeId: string;
 
-  @OneToOne(() => TravelPlace, (place) => place.vectorData, { onDelete: 'CASCADE' })
+  @OneToOne(() => TravelPlace, (place) => place.vectorData, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'placeId' })
   place: TravelPlace;
 

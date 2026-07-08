@@ -1,4 +1,10 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
 import { TripPlan } from './trip-plan.entity';
 import { TravelPlace } from '../../travelplace/entities/travelplace.entity';
 
@@ -13,11 +19,15 @@ export class TripPlaceSelection {
   @Column()
   placeId: string;
 
-  @ManyToOne(() => TripPlan, (tripPlan) => tripPlan.selections, { onDelete: 'CASCADE' })
+  @ManyToOne(() => TripPlan, (tripPlan) => tripPlan.selections, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'tripPlanId' })
   tripPlan: TripPlan;
 
-  @ManyToOne(() => TravelPlace, (place) => place.tripPlaceSelections, { onDelete: 'CASCADE' })
+  @ManyToOne(() => TravelPlace, (place) => place.tripPlaceSelections, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'placeId' })
   place: TravelPlace;
 

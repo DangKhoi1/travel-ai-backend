@@ -1,4 +1,10 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToOne, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  OneToOne,
+  JoinColumn,
+} from 'typeorm';
 import { TripPlan } from './trip-plan.entity';
 
 @Entity('expense_estimates')
@@ -9,7 +15,9 @@ export class ExpenseEstimate {
   @Column({ unique: true })
   tripPlanId: string;
 
-  @OneToOne(() => TripPlan, (tripPlan) => tripPlan.expenseEstimate, { onDelete: 'CASCADE' })
+  @OneToOne(() => TripPlan, (tripPlan) => tripPlan.expenseEstimate, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'tripPlanId' })
   tripPlan: TripPlan;
 

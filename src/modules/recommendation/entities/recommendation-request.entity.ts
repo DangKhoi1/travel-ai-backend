@@ -1,4 +1,11 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
 import { User } from '../../user/entities/user.entity';
 
 @Entity('recommendation_requests')
@@ -9,7 +16,9 @@ export class RecommendationRequest {
   @Column()
   userId: string;
 
-  @ManyToOne(() => User, (user) => user.recommendationRequests, { onDelete: 'CASCADE' })
+  @ManyToOne(() => User, (user) => user.recommendationRequests, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'userId' })
   user: User;
 

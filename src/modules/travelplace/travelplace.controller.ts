@@ -1,4 +1,13 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+} from '@nestjs/common';
 import { TravelplaceService } from './travelplace.service';
 import { CreateTravelplaceDto } from './dto/create-travelplace.dto';
 import { UpdateTravelplaceDto } from './dto/update-travelplace.dto';
@@ -9,10 +18,10 @@ import { Public } from '../../common/decorators/public.decorator';
 @Controller('travelplace')
 @UseGuards(JwtAuthGuard)
 export class TravelplaceController {
-  constructor(private readonly travelplaceService: TravelplaceService) { }
+  constructor(private readonly travelplaceService: TravelplaceService) {}
 
   @Post('add-travelplace')
-  @Permission("Create Travelplace")
+  @Permission('Create Travelplace')
   create(@Body() createTravelplaceDto: CreateTravelplaceDto) {
     return this.travelplaceService.create(createTravelplaceDto);
   }
@@ -30,13 +39,16 @@ export class TravelplaceController {
   }
 
   @Patch('update-travelplace/:id')
-  @Permission("Update Travelplace")
-  updateTravelplace(@Param('id') id: string, @Body() updateTravelplaceDto: UpdateTravelplaceDto) {
+  @Permission('Update Travelplace')
+  updateTravelplace(
+    @Param('id') id: string,
+    @Body() updateTravelplaceDto: UpdateTravelplaceDto,
+  ) {
     return this.travelplaceService.update(id, updateTravelplaceDto);
   }
 
   @Delete('delete-travelplace/:id')
-  @Permission("Delete Travelplace")
+  @Permission('Delete Travelplace')
   removeTravelplace(@Param('id') id: string) {
     return this.travelplaceService.remove(id);
   }

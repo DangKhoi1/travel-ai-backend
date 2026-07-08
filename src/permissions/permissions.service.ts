@@ -1,4 +1,11 @@
-import { Injectable, OnModuleInit, Logger, RequestMethod, InternalServerErrorException } from '@nestjs/common';
+/* eslint-disable */
+import {
+  Injectable,
+  OnModuleInit,
+  Logger,
+  RequestMethod,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { CreatePermissionDto } from './dto/create-permission.dto';
 import { UpdatePermissionDto } from './dto/update-permission.dto';
 import { DiscoveryService, Reflector } from '@nestjs/core';
@@ -23,28 +30,40 @@ export class PermissionsService implements OnModuleInit {
     private readonly rolePermissionRepo: Repository<RolePermission>,
     @InjectRepository(Role)
     private readonly roleRepo: Repository<Role>,
-  ) { }
+  ) {}
 
   async onModuleInit() {
     this.logger.log('Scanning for @Permission decorators...');
     const controllers = this.discoveryService.getControllers();
 
-    const adminRole = await this.roleRepo.findOneBy({ roleName: ROLE_NAMES.ADMIN });
+    const adminRole = await this.roleRepo.findOneBy({
+      roleName: ROLE_NAMES.ADMIN,
+    });
 
     for (const wrapper of controllers) {
-      const { instance, name: controllerName } = wrapper;
+      const { instance, name: controllerName } = wrapper as {
+        instance: unknown;
+        name: string;
+      };
       if (!instance || typeof instance !== 'object') continue;
 
       const prototype = Object.getPrototypeOf(instance);
       const methods = Object.getOwnPropertyNames(prototype);
 
-      const controllerPath = wrapper.metatype ? this.reflector.get<string>('path', wrapper.metatype) || '' : '';
+      const controllerPath: string = wrapper.metatype
+        ? this.reflector.get<string>('path', wrapper.metatype as any) || ''
+        : '';
 
       for (const methodName of methods) {
         if (methodName === 'constructor') continue;
-        const method = prototype[methodName];
 
-        const permissionName = this.reflector.get<string>(PERMISSION_KEY, method);
+         
+        const method: any = prototype[methodName];
+
+        const permissionName = this.reflector.get<string>(
+          PERMISSION_KEY,
+          method,
+        );
 
         if (permissionName) {
           const methodPath = this.reflector.get<string>('path', method) || '';
@@ -60,16 +79,20 @@ export class PermissionsService implements OnModuleInit {
             methodStr = RequestMethod[httpMethodId];
           }
 
-          let permission = await this.permissionRepo.findOneBy({ permissionName });
+          let permission = await this.permissionRepo.findOneBy({
+            permissionName,
+          });
           if (!permission) {
             permission = this.permissionRepo.create({
               permissionName,
               apiPath,
               method: methodStr,
-              module: controllerName.replace('Controller', '')
+              module: String(controllerName).replace('Controller', ''),
             });
             await this.permissionRepo.save(permission);
-            this.logger.log(`Discovered & saved new permission: [${methodStr}] ${apiPath} -> ${permissionName}`);
+            this.logger.log(
+              `Discovered & saved new permission: [${methodStr}] ${apiPath} -> ${permissionName}`,
+            );
           }
 
           if (adminRole) {
@@ -98,7 +121,7 @@ export class PermissionsService implements OnModuleInit {
       return {
         EC: 0,
         EM: 'Create permission successfully',
-        data: permission
+        data: permission,
       };
     } catch (error: unknown) {
       console.error(
@@ -118,7 +141,7 @@ export class PermissionsService implements OnModuleInit {
       return {
         EC: 0,
         EM: 'Get all permissions successfully',
-        data: permissions
+        data: permissions,
       };
     } catch (error: unknown) {
       console.error(
@@ -134,18 +157,20 @@ export class PermissionsService implements OnModuleInit {
 
   async findOne(id: number) {
     try {
-      const permission = await this.permissionRepo.findOneBy({ permissionId: id });
+      const permission = await this.permissionRepo.findOneBy({
+        permissionId: id,
+      });
       if (!permission) {
         return {
           EC: 1,
           EM: 'Permission not found',
-          data: null
+          data: null,
         };
       }
       return {
         EC: 0,
         EM: 'Get permission successfully',
-        data: permission
+        data: permission,
       };
     } catch (error: unknown) {
       console.error(
@@ -161,19 +186,21 @@ export class PermissionsService implements OnModuleInit {
 
   async update(id: number, updatePermissionDto: UpdatePermissionDto) {
     try {
-      const permission = await this.permissionRepo.findOneBy({ permissionId: id });
+      const permission = await this.permissionRepo.findOneBy({
+        permissionId: id,
+      });
       if (!permission) {
         return {
           EC: 1,
           EM: 'Permission not found',
-          data: null
+          data: null,
         };
       }
       await this.permissionRepo.update(id, updatePermissionDto);
       return {
         EC: 0,
         EM: 'Update permission successfully',
-        data: null
+        data: null,
       };
     } catch (error: unknown) {
       console.error(
@@ -189,19 +216,21 @@ export class PermissionsService implements OnModuleInit {
 
   async remove(id: number) {
     try {
-      const permission = await this.permissionRepo.findOneBy({ permissionId: id });
+      const permission = await this.permissionRepo.findOneBy({
+        permissionId: id,
+      });
       if (!permission) {
         return {
           EC: 1,
           EM: 'Permission not found',
-          data: null
+          data: null,
         };
       }
       await this.permissionRepo.delete(id);
       return {
         EC: 0,
         EM: 'Delete permission successfully',
-        data: null
+        data: null,
       };
     } catch (error: unknown) {
       console.error(

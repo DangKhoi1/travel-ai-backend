@@ -1,18 +1,20 @@
-import { CanActivate, ExecutionContext } from "@nestjs/common";
-import { Reflector } from "@nestjs/core";
-import { ROLES_KEY } from "src/common/decorators/role.decorator";
-import { User } from "../modules/user/entities/user.entity"
+import { CanActivate, ExecutionContext } from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
+import { ROLES_KEY } from '../common/decorators/role.decorator';
 
 export class RolesGuard implements CanActivate {
-    constructor(private reflector: Reflector) { }
-    canActivate(context: ExecutionContext): boolean {
-        const roles = this.reflector.getAllAndOverride<string[]>(ROLES_KEY, [context.getHandler(), context.getClass()])
-        if (!roles) return true
+  constructor(private reflector: Reflector) {}
+  canActivate(context: ExecutionContext): boolean {
+    const roles = this.reflector.getAllAndOverride<string[]>(ROLES_KEY, [
+      context.getHandler(),
+      context.getClass(),
+    ]);
+    if (!roles) return true;
 
-        const { user } = context.switchToHttp().getRequest<{
-            user?: { userId: string, email: string, role: string }
-        }>();
+    const { user } = context.switchToHttp().getRequest<{
+      user?: { userId: string; email: string; role: string };
+    }>();
 
-        return roles.includes(user?.role || "");
-    }
+    return roles.includes(user?.role || '');
+  }
 }

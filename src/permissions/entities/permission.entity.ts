@@ -6,7 +6,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { RolePermission } from 'src/permissions/entities/role-permission.entity';
+import { RolePermission } from './role-permission.entity';
 
 @Entity('permissions')
 export class Permission {
@@ -25,7 +25,10 @@ export class Permission {
   @Column({ nullable: true })
   module: string;
 
-  @OneToMany(() => RolePermission, (rolePermission) => rolePermission.permission)
+  @OneToMany(
+    () => RolePermission,
+    (rolePermission) => rolePermission.permission,
+  )
   rolePermissions: RolePermission[];
 
   @CreateDateColumn()

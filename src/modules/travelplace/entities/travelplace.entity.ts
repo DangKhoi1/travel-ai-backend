@@ -1,4 +1,12 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany, OneToOne } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  OneToMany,
+  OneToOne,
+} from 'typeorm';
 import { VectorData } from '../../rag/entities/vector-data.entity';
 import { Review } from '../../review/entities/review.entity';
 import { TripPlaceSelection } from '../../trip/entities/trip-place-selection.entity';

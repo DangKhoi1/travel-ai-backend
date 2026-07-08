@@ -1,6 +1,12 @@
-import { Injectable, InternalServerErrorException, OnModuleInit, Logger, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  OnModuleInit,
+  Logger,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, In } from 'typeorm';
+import { Repository } from 'typeorm';
 import { Role } from './entities/role.entity';
 import { RolePermission } from '../../permissions/entities/role-permission.entity';
 import { ROLE_NAMES } from '../../common/constants/role.constant';
@@ -16,7 +22,7 @@ export class RolesService implements OnModuleInit {
     private readonly roleRepo: Repository<Role>,
     @InjectRepository(RolePermission)
     private readonly rolePermissionRepo: Repository<RolePermission>,
-  ) { }
+  ) {}
 
   async onModuleInit() {
     this.logger.log('Checking and seeding default roles...');
@@ -39,7 +45,9 @@ export class RolesService implements OnModuleInit {
 
   async createRole(createRoleDto: CreateRoleDto) {
     try {
-      const role = await this.roleRepo.findOneBy({ roleName: createRoleDto.roleName });
+      const role = await this.roleRepo.findOneBy({
+        roleName: createRoleDto.roleName,
+      });
       if (role) {
         throw new BadRequestException('Role already exists');
       }
@@ -48,7 +56,7 @@ export class RolesService implements OnModuleInit {
       return {
         EC: 0,
         EM: 'Create role successfully',
-        data: newRole
+        data: newRole,
       };
     } catch (error: unknown) {
       if (error instanceof BadRequestException) throw error;
@@ -69,7 +77,7 @@ export class RolesService implements OnModuleInit {
       return {
         EC: 0,
         EM: 'Get all roles successfully',
-        data: roles
+        data: roles,
       };
     } catch (error: unknown) {
       console.error(
@@ -90,13 +98,13 @@ export class RolesService implements OnModuleInit {
         return {
           EC: 1,
           EM: 'Role not found',
-          data: null
+          data: null,
         };
       }
       return {
         EC: 0,
         EM: 'Get role successfully',
-        data: role
+        data: role,
       };
     } catch (error: unknown) {
       console.error(
@@ -117,14 +125,14 @@ export class RolesService implements OnModuleInit {
         return {
           EC: 1,
           EM: 'Role not found',
-          data: null
+          data: null,
         };
       }
       await this.roleRepo.update(id, updateRoleDto);
       return {
         EC: 0,
         EM: 'Update role successfully',
-        data: null
+        data: null,
       };
     } catch (error: unknown) {
       console.error(
@@ -145,14 +153,14 @@ export class RolesService implements OnModuleInit {
         return {
           EC: 1,
           EM: 'Role not found',
-          data: null
+          data: null,
         };
       }
       await this.roleRepo.delete(id);
       return {
         EC: 0,
         EM: 'Delete role successfully',
-        data: null
+        data: null,
       };
     } catch (error: unknown) {
       console.error(
@@ -173,7 +181,7 @@ export class RolesService implements OnModuleInit {
         return {
           EC: 1,
           EM: 'Role not found',
-          data: null
+          data: null,
         };
       }
 
@@ -182,8 +190,8 @@ export class RolesService implements OnModuleInit {
 
       // Insert new permissions
       if (permissionIds && permissionIds.length > 0) {
-        const newRolePerms = permissionIds.map(permissionId =>
-          this.rolePermissionRepo.create({ roleId, permissionId })
+        const newRolePerms = permissionIds.map((permissionId) =>
+          this.rolePermissionRepo.create({ roleId, permissionId }),
         );
         await this.rolePermissionRepo.save(newRolePerms);
       }
@@ -191,7 +199,7 @@ export class RolesService implements OnModuleInit {
       return {
         EC: 0,
         EM: 'Permissions assigned successfully',
-        data: null
+        data: null,
       };
     } catch (error: unknown) {
       console.error(
@@ -212,7 +220,7 @@ export class RolesService implements OnModuleInit {
         return {
           EC: 1,
           EM: 'Role not found',
-          data: null
+          data: null,
         };
       }
 
@@ -224,7 +232,7 @@ export class RolesService implements OnModuleInit {
       return {
         EC: 0,
         EM: 'Get role permissions successfully',
-        data: rolePermissions.map(rp => rp.permission)
+        data: rolePermissions.map((rp) => rp.permission),
       };
     } catch (error: unknown) {
       console.error(
