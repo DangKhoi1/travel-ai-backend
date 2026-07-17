@@ -19,14 +19,23 @@ export class User {
   @PrimaryGeneratedColumn('uuid')
   userId: string;
 
-  @Column({ nullable: true })
+  @Column({ unique: true })
   username: string;
 
   @Column({ nullable: true })
   phoneNumber: string;
 
-  @Column({ unique: true })
+  @Column({ unique: true, nullable: true })
   email: string;
+
+  @Column({ nullable: true })
+  gender: string;
+
+  @Column({ type: 'int', nullable: true })
+  birthYear: number;
+
+  @Column({ nullable: true })
+  hobbies: string;
 
   @Column()
   password: string;

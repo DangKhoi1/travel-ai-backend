@@ -21,28 +21,36 @@ export class AuthService {
 
   async createUser(createUserDto: CreateAuthDto) {
     try {
-      const checkEmail = await this.userRepo.findOneBy({
-        email: createUserDto.email,
-      });
-      if (checkEmail) {
+      if (createUserDto.email) {
+        const checkEmail = await this.userRepo.findOneBy({
+          email: createUserDto.email,
+        });
+        if (checkEmail) {
+          return {
+            EC: 1,
+            EM: 'Email already exists',
+            data: null,
+          };
+        }
+      }
+
+      if (!createUserDto.username) {
         return {
           EC: 1,
-          EM: 'Email already exists',
+          EM: 'Username is required',
           data: null,
         };
       }
 
-      if (createUserDto.username) {
-        const checkUsername = await this.userRepo.findOneBy({
-          username: createUserDto.username,
-        });
-        if (checkUsername) {
-          return {
-            EC: 1,
-            EM: 'Username already exists',
-            data: null,
-          };
-        }
+      const checkUsername = await this.userRepo.findOneBy({
+        username: createUserDto.username,
+      });
+      if (checkUsername) {
+        return {
+          EC: 1,
+          EM: 'Username already exists',
+          data: null,
+        };
       }
 
       const userRole = await this.roleRepo.findOneBy({
@@ -103,6 +111,7 @@ export class AuthService {
       // Tạo JWT token
       const payload = {
         sub: user.userId,
+        username: user.username,
         email: user.email,
         role: user.role?.roleName,
       };
