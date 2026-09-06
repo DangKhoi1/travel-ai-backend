@@ -17,4 +17,8 @@ export class ChatDto {
   @Min(1)
   @Max(10)
   topK?: number = 3; // Số documents retrieve, default 3
+
+  @IsString()
+  @IsOptional()
+  sessionId?: string;
 }

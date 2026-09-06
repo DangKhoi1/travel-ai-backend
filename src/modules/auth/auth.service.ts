@@ -1,141 +1,158 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
-import { CreateAuthDto } from './dto/register.dto';
-import { Repository } from 'typeorm';
-import { User } from '../user/entities/user.entity';
+import {
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+  UnauthorizedException,
+} from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
-import { LoginAuthDto } from './dto/login.dto';
 import { JwtService } from '@nestjs/jwt';
+import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
-import { Role } from '../roles/entities/role.entity';
 import { ROLE_NAMES } from '../../common/constants/role.constant';
+import { Role } from '../roles/entities/role.entity';
+import { User } from '../user/entities/user.entity';
+import { LoginAuthDto } from './dto/login.dto';
+import { CreateAuthDto } from './dto/register.dto';
+
+interface RefreshPayload {
+  sub: string;
+  type: 'refresh';
+}
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(
-    @InjectRepository(User)
-    private readonly userRepo: Repository<User>,
-    @InjectRepository(Role)
-    private readonly roleRepo: Repository<Role>,
+    @InjectRepository(User) private readonly userRepo: Repository<User>,
+    @InjectRepository(Role) private readonly roleRepo: Repository<Role>,
     private readonly jwtService: JwtService,
+    private readonly configService: ConfigService,
   ) {}
 
-  async createUser(createUserDto: CreateAuthDto) {
+  async createUser(dto: CreateAuthDto) {
     try {
-      if (createUserDto.email) {
-        const checkEmail = await this.userRepo.findOneBy({
-          email: createUserDto.email,
-        });
-        if (checkEmail) {
-          return {
-            EC: 1,
-            EM: 'Email already exists',
-            data: null,
-          };
-        }
-      }
-
-      if (!createUserDto.username) {
-        return {
-          EC: 1,
-          EM: 'Username is required',
-          data: null,
-        };
-      }
-
-      const checkUsername = await this.userRepo.findOneBy({
-        username: createUserDto.username,
-      });
-      if (checkUsername) {
-        return {
-          EC: 1,
-          EM: 'Username already exists',
-          data: null,
-        };
-      }
-
-      const userRole = await this.roleRepo.findOneBy({
-        roleName: ROLE_NAMES.USER,
-      });
+      if (dto.email && (await this.userRepo.findOneBy({ email: dto.email })))
+        return { EC: 1, EM: 'Email already exists', data: null };
+      if (await this.userRepo.findOneBy({ username: dto.username }))
+        return { EC: 1, EM: 'Username already exists', data: null };
+      const role = await this.roleRepo.findOneBy({ roleName: ROLE_NAMES.USER });
       const user = this.userRepo.create({
-        ...createUserDto,
-        role: userRole || undefined,
+        ...dto,
+        role: role || undefined,
+        password: await bcrypt.hash(dto.password, 10),
       });
-      user.password = await bcrypt.hash(user.password, 10);
       await this.userRepo.save(user);
-
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { password: _, ...newUser } = user;
       return {
         EC: 0,
         EM: 'User created successfully',
-        data: newUser,
+        data: this.safeUser(user),
       };
     } catch (error: unknown) {
-      console.error(
-        'Error in createUser:',
-        error instanceof Error ? error.message : String(error),
+      this.logger.error(
+        `Create user failed: ${error instanceof Error ? error.message : String(error)}`,
       );
       throw new InternalServerErrorException({
         EC: 1,
-        EM: 'Error from createUser service',
+        EM: 'Unable to create user',
       });
     }
   }
 
-  async loginUser(loginAuthDto: LoginAuthDto) {
+  async loginUser(dto: LoginAuthDto) {
+    const user = await this.userRepo.findOne({
+      where: { username: dto.username },
+      relations: ['role'],
+    });
+    if (
+      !user ||
+      !(await bcrypt.compare(dto.password, user.password)) ||
+      !user.isActive
+    )
+      return {
+        EC: 1,
+        EM: 'Tên đăng nhập hoặc mật khẩu không đúng',
+        data: null,
+      };
+    return {
+      EC: 0,
+      EM: 'User logged in successfully',
+      data: await this.issueSession(user),
+    };
+  }
+
+  async refresh(refreshToken: string) {
     try {
-      const user = await this.userRepo.findOne({
-        where: { username: loginAuthDto.username },
-        relations: ['role'],
-      });
-      if (!user) {
-        return {
-          EC: 1,
-          EM: 'User not found',
-          data: null,
-        };
-      }
-
-      const isMatch = await bcrypt.compare(
-        loginAuthDto.password,
-        user.password,
+      const payload = await this.jwtService.verifyAsync<RefreshPayload>(
+        refreshToken,
+        { secret: this.refreshSecret },
       );
-      if (!isMatch) {
-        return {
-          EC: 1,
-          EM: 'Password not match',
-          data: null,
-        };
-      }
+      if (payload.type !== 'refresh') throw new UnauthorizedException();
+      const user = await this.userRepo
+        .createQueryBuilder('user')
+        .addSelect('user.refreshTokenHash')
+        .leftJoinAndSelect('user.role', 'role')
+        .where('user.userId = :id', { id: payload.sub })
+        .getOne();
+      if (
+        !user?.refreshTokenHash ||
+        !(await bcrypt.compare(refreshToken, user.refreshTokenHash)) ||
+        !user.isActive
+      )
+        throw new UnauthorizedException();
+      return {
+        EC: 0,
+        EM: 'Token refreshed',
+        data: await this.issueSession(user),
+      };
+    } catch {
+      throw new UnauthorizedException({
+        EC: 1,
+        EM: 'Phiên đăng nhập đã hết hạn',
+      });
+    }
+  }
 
-      // Tạo JWT token
-      const payload = {
+  async revoke(userId: string) {
+    await this.userRepo.update(userId, { refreshTokenHash: null });
+  }
+
+  private async issueSession(user: User) {
+    const accessToken = this.jwtService.sign(
+      {
         sub: user.userId,
         username: user.username,
         email: user.email,
         role: user.role?.roleName,
-      };
-      const accessToken = this.jwtService.sign(payload);
+      },
+      { expiresIn: '15m' },
+    );
+    const refreshToken = this.jwtService.sign(
+      { sub: user.userId, type: 'refresh' },
+      { secret: this.refreshSecret, expiresIn: '7d' },
+    );
+    user.refreshTokenHash = await bcrypt.hash(refreshToken, 10);
+    await this.userRepo
+      .createQueryBuilder()
+      .update(User)
+      .set({ refreshTokenHash: user.refreshTokenHash })
+      .where('userId = :id', { id: user.userId })
+      .execute();
+    return { user: this.safeUser(user), accessToken, refreshToken };
+  }
 
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { password: _, ...newUser } = user;
-      return {
-        EC: 0,
-        EM: 'User logged in successfully',
-        data: {
-          user: newUser,
-          accessToken,
-        },
-      };
-    } catch (error: unknown) {
-      console.error(
-        'Error in loginUser:',
-        error instanceof Error ? error.message : String(error),
-      );
-      throw new InternalServerErrorException({
-        EC: 1,
-        EM: 'Error from loginUser service',
-      });
-    }
+  private safeUser(user: User) {
+    const safe = { ...user } as Partial<User>;
+    delete safe.password;
+    delete safe.refreshTokenHash;
+    return safe;
+  }
+
+  private get refreshSecret() {
+    return (
+      this.configService.get<string>('JWT_REFRESH_SECRET') ||
+      `${this.configService.get<string>('JWT_SECRET') || 'default-secret'}-refresh`
+    );
   }
 }

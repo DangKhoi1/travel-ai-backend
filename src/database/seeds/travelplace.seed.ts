@@ -4,7 +4,8 @@ import { TravelPlace } from '../../modules/travelplace/entities/travelplace.enti
 export const TRAVEL_PLACES_SEED = [
   {
     name: 'Vịnh Hạ Long',
-    description: 'Di sản thiên nhiên thế giới với hàng ngàn hòn đảo đá vôi kỳ vĩ.',
+    description:
+      'Di sản thiên nhiên thế giới với hàng ngàn hòn đảo đá vôi kỳ vĩ.',
     city: 'Hạ Long',
     country: 'Việt Nam',
     latitude: 20.9101,
@@ -20,12 +21,12 @@ export const TRAVEL_PLACES_SEED = [
     city: 'Hội An',
     country: 'Việt Nam',
     latitude: 15.8801,
-    longitude: 108.3380,
+    longitude: 108.338,
     ticketPrice: '120.000 VNĐ',
     category: 'Văn hóa - Lịch sử',
     bestSeason: 'Mùa xuân, Mùa hè',
     imageUrl: 'https://example.com/hoian.jpg',
-  }
+  },
   // TODO: Bạn có thể thêm tiếp các địa điểm khác vào đây
 ];
 

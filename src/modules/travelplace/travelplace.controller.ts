@@ -1,55 +1,94 @@
 import {
-  Controller,
-  Get,
-  Post,
   Body,
-  Patch,
-  Param,
+  Controller,
   Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
-import { TravelplaceService } from './travelplace.service';
-import { CreateTravelplaceDto } from './dto/create-travelplace.dto';
-import { UpdateTravelplaceDto } from './dto/update-travelplace.dto';
-import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
 import { Permission } from '../../common/decorators/permission.decorator';
 import { Public } from '../../common/decorators/public.decorator';
+import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
+import { CreateTravelplaceDto } from './dto/create-travelplace.dto';
+import { UpdateTravelplaceDto } from './dto/update-travelplace.dto';
+import { TravelplaceService } from './travelplace.service';
+import { Roles } from '../../common/decorators/roles.decorator';
+import { RolesGuard } from '../../guards/roles.guard';
+import { ROLE_NAMES } from '../../common/constants/role.constant';
 
 @Controller('travelplace')
 @UseGuards(JwtAuthGuard)
 export class TravelplaceController {
-  constructor(private readonly travelplaceService: TravelplaceService) {}
+  constructor(private readonly service: TravelplaceService) {}
 
-  @Post('add-travelplace')
-  @Permission('Create Travelplace')
-  create(@Body() createTravelplaceDto: CreateTravelplaceDto) {
-    return this.travelplaceService.create(createTravelplaceDto);
+  @Public()
+  @Get()
+  findAll(
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('search') search?: string,
+    @Query('category') category?: string,
+    @Query('city') city?: string,
+  ) {
+    return this.service.findAll({
+      page: Number(page),
+      limit: Number(limit),
+      search,
+      category,
+      city,
+    });
   }
 
   @Public()
   @Get('find-all')
-  findAllTravelplace() {
-    return this.travelplaceService.findAll();
+  findAllLegacy() {
+    return this.service.findAll({ limit: 50 });
   }
 
   @Public()
   @Get('find-by-id/:id')
-  findOneTravelplace(@Param('id') id: string) {
-    return this.travelplaceService.findOne(id);
+  findOneLegacy(@Param('id') id: string) {
+    return this.service.findOne(id);
   }
 
-  @Patch('update-travelplace/:id')
+  @Public()
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return this.service.findOne(id);
+  }
+
+  @Post()
+  @UseGuards(RolesGuard)
+  @Roles(ROLE_NAMES.ADMIN)
+  @Permission('Create Travelplace')
+  create(@Body() dto: CreateTravelplaceDto) {
+    return this.service.create(dto);
+  }
+
+  @Post('add-travelplace')
+  @UseGuards(RolesGuard)
+  @Roles(ROLE_NAMES.ADMIN)
+  @Permission('Create Travelplace')
+  createLegacy(@Body() dto: CreateTravelplaceDto) {
+    return this.service.create(dto);
+  }
+
+  @Patch(':id')
+  @UseGuards(RolesGuard)
+  @Roles(ROLE_NAMES.ADMIN)
   @Permission('Update Travelplace')
-  updateTravelplace(
-    @Param('id') id: string,
-    @Body() updateTravelplaceDto: UpdateTravelplaceDto,
-  ) {
-    return this.travelplaceService.update(id, updateTravelplaceDto);
+  update(@Param('id') id: string, @Body() dto: UpdateTravelplaceDto) {
+    return this.service.update(id, dto);
   }
 
-  @Delete('delete-travelplace/:id')
+  @Delete(':id')
+  @UseGuards(RolesGuard)
+  @Roles(ROLE_NAMES.ADMIN)
   @Permission('Delete Travelplace')
-  removeTravelplace(@Param('id') id: string) {
-    return this.travelplaceService.remove(id);
+  remove(@Param('id') id: string) {
+    return this.service.remove(id);
   }
 }

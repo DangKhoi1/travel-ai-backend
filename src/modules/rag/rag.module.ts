@@ -5,9 +5,10 @@ import { RagService } from './rag.service';
 import { EmbeddingService } from './embedding.service';
 import { TravelPlace } from '../travelplace/entities/travelplace.entity';
 import { VectorData } from './entities/vector-data.entity';
+import { ChatModule } from '../chat/chat.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([TravelPlace, VectorData])],
+  imports: [TypeOrmModule.forFeature([TravelPlace, VectorData]), ChatModule],
   controllers: [RagController],
   providers: [RagService, EmbeddingService],
   exports: [RagService, EmbeddingService],

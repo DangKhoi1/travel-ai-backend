@@ -57,7 +57,6 @@ export class PermissionsService implements OnModuleInit {
       for (const methodName of methods) {
         if (methodName === 'constructor') continue;
 
-         
         const method: any = prototype[methodName];
 
         const permissionName = this.reflector.get<string>(

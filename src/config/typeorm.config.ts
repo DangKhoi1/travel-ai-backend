@@ -1,5 +1,6 @@
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { join } from 'path';
 
 export const ConfigTypeOrm = TypeOrmModule.forRootAsync({
   imports: [ConfigModule.forRoot({ isGlobal: true })],
@@ -11,7 +12,11 @@ export const ConfigTypeOrm = TypeOrmModule.forRootAsync({
     password: configService.get<string>('DB_PASSWORD'),
     database: configService.get<string>('DB_NAME'),
     autoLoadEntities: true,
-    synchronize: true,
+    synchronize:
+      configService.get<string>('NODE_ENV') !== 'production' &&
+      configService.get<string>('DB_SYNCHRONIZE', 'true') === 'true',
+    migrations: [join(__dirname, '../database/migrations/*{.ts,.js}')],
+    migrationsRun: configService.get<string>('NODE_ENV') === 'production',
   }),
   inject: [ConfigService],
 });

@@ -10,6 +10,7 @@ import {
 import { VectorData } from '../../rag/entities/vector-data.entity';
 import { Review } from '../../review/entities/review.entity';
 import { TripPlaceSelection } from '../../trip/entities/trip-place-selection.entity';
+import { Favorite } from '../../favorite/entities/favorite.entity';
 
 @Entity('travel_places')
 export class TravelPlace {
@@ -54,6 +55,9 @@ export class TravelPlace {
 
   @OneToMany(() => TripPlaceSelection, (selection) => selection.place)
   tripPlaceSelections: TripPlaceSelection[];
+
+  @OneToMany(() => Favorite, (favorite) => favorite.place)
+  favorites: Favorite[];
 
   @CreateDateColumn()
   createdAt: Date;

@@ -13,6 +13,7 @@ import { ChatHistory } from '../../chat/entities/chat-history.entity';
 import { RecommendationRequest } from '../../recommendation/entities/recommendation-request.entity';
 import { TripPlan } from '../../trip/entities/trip-plan.entity';
 import { Role } from '../../roles/entities/role.entity';
+import { Favorite } from '../../favorite/entities/favorite.entity';
 
 @Entity('users')
 export class User {
@@ -40,6 +41,9 @@ export class User {
   @Column()
   password: string;
 
+  @Column({ type: 'text', nullable: true, select: false })
+  refreshTokenHash: string | null;
+
   @Column({ nullable: true })
   fullName: string;
 
@@ -64,6 +68,9 @@ export class User {
 
   @OneToMany(() => TripPlan, (trip) => trip.user)
   tripPlans: TripPlan[];
+
+  @OneToMany(() => Favorite, (favorite) => favorite.user)
+  favorites: Favorite[];
 
   @CreateDateColumn()
   createdAt: Date;

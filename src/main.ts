@@ -1,13 +1,20 @@
+import './instrument';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe, VersioningType } from '@nestjs/common';
-import { DataSource } from 'typeorm';
+import cookieParser from 'cookie-parser';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  app.use(cookieParser());
   app.setGlobalPrefix('api');
+  const allowedOrigins = (process.env.CORS_ORIGINS ?? 'http://localhost:3000')
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean);
   app.enableCors({
-    origin: '*',
+    origin: allowedOrigins,
     credentials: true,
   });
   app.enableVersioning({
@@ -24,25 +31,19 @@ async function bootstrap() {
     }),
   );
 
-  // Enable pgvector extension
-  const dataSource = app.get(DataSource);
-  await dataSource.query('CREATE EXTENSION IF NOT EXISTS vector');
-
-  // Auto-migrate: chuyển column embedding trong vector_data từ text sang vector(1536)
-  await dataSource.query(`
-    DO $$
-    BEGIN
-      IF EXISTS (
-        SELECT 1 FROM information_schema.columns
-        WHERE table_name = 'vector_data' AND column_name = 'embedding'
-        AND data_type = 'text'
-      ) THEN
-        ALTER TABLE vector_data
-          ALTER COLUMN embedding TYPE vector(1536)
-          USING embedding::vector;
-      END IF;
-    END $$;
-  `);
+  const swaggerConfig = new DocumentBuilder()
+    .setTitle('Travel-AI API')
+    .setDescription(
+      'API cho lập lịch trình, khám phá địa điểm và trợ lý du lịch AI',
+    )
+    .setVersion('1.0')
+    .addBearerAuth()
+    .build();
+  SwaggerModule.setup(
+    'api/docs',
+    app,
+    SwaggerModule.createDocument(app, swaggerConfig),
+  );
 
   await app.listen(process.env.PORT ?? 8080);
 }

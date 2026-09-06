@@ -20,8 +20,16 @@ describe('AppController (e2e)', () => {
     return request(app.getHttpServer())
       .get('/')
       .expect(200)
-      .expect('Hello World!');
+      .expect('Travel-AI API');
   });
+
+  it('/health (GET)', () =>
+    request(app.getHttpServer())
+      .get('/health')
+      .expect(200)
+      .expect(({ body }: { body: { status: string } }) => {
+        expect(body.status).toBe('ok');
+      }));
 
   afterEach(async () => {
     await app.close();

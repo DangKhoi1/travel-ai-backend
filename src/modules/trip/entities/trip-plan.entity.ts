@@ -46,6 +46,12 @@ export class TripPlan {
   @Column({ type: 'date', nullable: true })
   endDate: Date;
 
+  @Column({ default: false })
+  isPublic: boolean;
+
+  @Column({ type: 'varchar', nullable: true, unique: true })
+  shareToken: string | null;
+
   @OneToMany(() => TripPlaceSelection, (selection) => selection.tripPlan)
   selections: TripPlaceSelection[];
 

@@ -24,10 +24,10 @@ export class ReviewController {
   @Post('create')
   @Permission('Create Review')
   createReview(
-    @Request() req: { user: { sub: string } },
+    @Request() req: { user: { userId: string } },
     @Body() createReviewDto: CreateReviewDto,
   ) {
-    return this.reviewService.createReview(req.user.sub, createReviewDto);
+    return this.reviewService.createReview(req.user.userId, createReviewDto);
   }
 
   @Public()
@@ -38,26 +38,30 @@ export class ReviewController {
 
   @Get('my-reviews')
   @Permission('Get My Reviews')
-  getMyReviews(@Request() req: { user: { sub: string } }) {
-    return this.reviewService.getReviewsByUser(req.user.sub);
+  getMyReviews(@Request() req: { user: { userId: string } }) {
+    return this.reviewService.getReviewsByUser(req.user.userId);
   }
 
   @Patch('update/:id')
   @Permission('Update Review')
   updateReview(
     @Param('id') id: string,
-    @Request() req: { user: { sub: string } },
+    @Request() req: { user: { userId: string } },
     @Body() updateReviewDto: UpdateReviewDto,
   ) {
-    return this.reviewService.updateReview(id, req.user.sub, updateReviewDto);
+    return this.reviewService.updateReview(
+      id,
+      req.user.userId,
+      updateReviewDto,
+    );
   }
 
   @Delete('delete/:id')
   @Permission('Delete Review')
   deleteReview(
     @Param('id') id: string,
-    @Request() req: { user: { sub: string } },
+    @Request() req: { user: { userId: string } },
   ) {
-    return this.reviewService.deleteReview(id, req.user.sub);
+    return this.reviewService.deleteReview(id, req.user.userId);
   }
 }
