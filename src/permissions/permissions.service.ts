@@ -123,7 +123,7 @@ export class PermissionsService implements OnModuleInit {
         data: permission,
       };
     } catch (error: unknown) {
-      console.error(
+      this.logger.error(
         'Error in create permission:',
         error instanceof Error ? error.message : String(error),
       );
@@ -143,7 +143,7 @@ export class PermissionsService implements OnModuleInit {
         data: permissions,
       };
     } catch (error: unknown) {
-      console.error(
+      this.logger.error(
         'Error in findAll permissions:',
         error instanceof Error ? error.message : String(error),
       );
@@ -172,7 +172,7 @@ export class PermissionsService implements OnModuleInit {
         data: permission,
       };
     } catch (error: unknown) {
-      console.error(
+      this.logger.error(
         'Error in findOne permission:',
         error instanceof Error ? error.message : String(error),
       );
@@ -202,7 +202,7 @@ export class PermissionsService implements OnModuleInit {
         data: null,
       };
     } catch (error: unknown) {
-      console.error(
+      this.logger.error(
         'Error in update permission:',
         error instanceof Error ? error.message : String(error),
       );
@@ -232,7 +232,7 @@ export class PermissionsService implements OnModuleInit {
         data: null,
       };
     } catch (error: unknown) {
-      console.error(
+      this.logger.error(
         'Error in remove permission:',
         error instanceof Error ? error.message : String(error),
       );

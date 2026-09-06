@@ -1,4 +1,8 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Review } from './entities/review.entity';
@@ -7,6 +11,8 @@ import { UpdateReviewDto } from './dto/update-review.dto';
 
 @Injectable()
 export class ReviewService {
+  private readonly logger = new Logger(ReviewService.name);
+
   constructor(
     @InjectRepository(Review)
     private readonly reviewRepo: Repository<Review>,
@@ -38,7 +44,7 @@ export class ReviewService {
         data: review,
       };
     } catch (error: unknown) {
-      console.error(
+      this.logger.error(
         'Error in createReview:',
         error instanceof Error ? error.message : String(error),
       );
@@ -73,7 +79,7 @@ export class ReviewService {
         data: safeReviews,
       };
     } catch (error: unknown) {
-      console.error(
+      this.logger.error(
         'Error in getReviewsByPlace:',
         error instanceof Error ? error.message : String(error),
       );
@@ -97,7 +103,7 @@ export class ReviewService {
         data: reviews,
       };
     } catch (error: unknown) {
-      console.error(
+      this.logger.error(
         'Error in getReviewsByUser:',
         error instanceof Error ? error.message : String(error),
       );
@@ -131,7 +137,7 @@ export class ReviewService {
         data: updatedReview,
       };
     } catch (error: unknown) {
-      console.error(
+      this.logger.error(
         'Error in updateReview:',
         error instanceof Error ? error.message : String(error),
       );
@@ -160,7 +166,7 @@ export class ReviewService {
         data: null,
       };
     } catch (error: unknown) {
-      console.error(
+      this.logger.error(
         'Error in deleteReview:',
         error instanceof Error ? error.message : String(error),
       );

@@ -60,7 +60,7 @@ export class RolesService implements OnModuleInit {
       };
     } catch (error: unknown) {
       if (error instanceof BadRequestException) throw error;
-      console.error(
+      this.logger.error(
         'Error in createRole:',
         error instanceof Error ? error.message : String(error),
       );
@@ -80,7 +80,7 @@ export class RolesService implements OnModuleInit {
         data: roles,
       };
     } catch (error: unknown) {
-      console.error(
+      this.logger.error(
         'Error in getAllRoles:',
         error instanceof Error ? error.message : String(error),
       );
@@ -107,7 +107,7 @@ export class RolesService implements OnModuleInit {
         data: role,
       };
     } catch (error: unknown) {
-      console.error(
+      this.logger.error(
         'Error in getRoleById:',
         error instanceof Error ? error.message : String(error),
       );
@@ -135,7 +135,7 @@ export class RolesService implements OnModuleInit {
         data: null,
       };
     } catch (error: unknown) {
-      console.error(
+      this.logger.error(
         'Error in updateRole:',
         error instanceof Error ? error.message : String(error),
       );
@@ -163,7 +163,7 @@ export class RolesService implements OnModuleInit {
         data: null,
       };
     } catch (error: unknown) {
-      console.error(
+      this.logger.error(
         'Error in deleteRole:',
         error instanceof Error ? error.message : String(error),
       );
@@ -202,7 +202,7 @@ export class RolesService implements OnModuleInit {
         data: null,
       };
     } catch (error: unknown) {
-      console.error(
+      this.logger.error(
         'Error in assignPermissions:',
         error instanceof Error ? error.message : String(error),
       );
@@ -235,7 +235,7 @@ export class RolesService implements OnModuleInit {
         data: rolePermissions.map((rp) => rp.permission),
       };
     } catch (error: unknown) {
-      console.error(
+      this.logger.error(
         'Error in getRolePermissions:',
         error instanceof Error ? error.message : String(error),
       );

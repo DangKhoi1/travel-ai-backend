@@ -1,4 +1,8 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+} from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { Repository } from 'typeorm';
@@ -8,6 +12,8 @@ import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UserService {
+  private readonly logger = new Logger(UserService.name);
+
   constructor(
     @InjectRepository(User)
     private readonly userRepo: Repository<User>,
@@ -38,7 +44,10 @@ export class UserService {
           };
         }
       }
-      const user = this.userRepo.create(createUserDto);
+      const user = this.userRepo.create({
+        ...createUserDto,
+        password: await bcrypt.hash(createUserDto.password, 10),
+      });
       await this.userRepo.save(user);
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { password: _, ...newUser } = user;
@@ -48,7 +57,7 @@ export class UserService {
         data: newUser,
       };
     } catch (error: unknown) {
-      console.error(
+      this.logger.error(
         'Error in createUser:',
         error instanceof Error ? error.message : String(error),
       );
@@ -80,7 +89,7 @@ export class UserService {
         data: result,
       };
     } catch (error: unknown) {
-      console.error(
+      this.logger.error(
         'Error in findAllUsers:',
         error instanceof Error ? error.message : String(error),
       );
@@ -112,7 +121,7 @@ export class UserService {
         data: newUser,
       };
     } catch (error: unknown) {
-      console.error(
+      this.logger.error(
         'Error in findUserById:',
         error instanceof Error ? error.message : String(error),
       );
@@ -146,7 +155,7 @@ export class UserService {
         data: newUser,
       };
     } catch (error: unknown) {
-      console.error(
+      this.logger.error(
         'Error in updateUser:',
         error instanceof Error ? error.message : String(error),
       );
@@ -174,7 +183,7 @@ export class UserService {
         data: null,
       };
     } catch (error: unknown) {
-      console.error(
+      this.logger.error(
         'Error in deleteUser:',
         error instanceof Error ? error.message : String(error),
       );
