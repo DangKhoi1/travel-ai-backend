@@ -5,9 +5,11 @@ import {
   CreateDateColumn,
   OneToOne,
   JoinColumn,
+  Index,
 } from 'typeorm';
 import { TravelPlace } from '../../travelplace/entities/travelplace.entity';
 
+@Index('idx_vector_data_embedding_hnsw', { synchronize: false })
 @Entity('vector_data')
 export class VectorData {
   @PrimaryGeneratedColumn('uuid')
@@ -22,10 +24,8 @@ export class VectorData {
   @JoinColumn({ name: 'placeId' })
   place: TravelPlace;
 
-  // Lưu embedding dạng text vì TypeORM chưa hỗ trợ vector type
-  // Sẽ dùng raw SQL để insert/query với pgvector
-  @Column({ type: 'text', nullable: true })
-  embedding: string;
+  @Column({ type: 'vector', length: 1536, nullable: true })
+  embedding: number[] | null;
 
   @Column({ nullable: true })
   modelName: string;
